@@ -2,23 +2,20 @@ package org.gitokro.project69;
 
 import java.io.ByteArrayInputStream;
 import java.io.StringWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 import freemarker.template.Configuration;
 import freemarker.template.Template;
-import lombok.Builder;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.core.io.InputStreamResource;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -42,22 +39,15 @@ class HomeController {
     public ResponseEntity<InputStreamResource> getReport() throws Exception {
         log.info("Generating report!");
         String htmlReport = this.generateHtmlReport();
-        HttpHeaders headers = new HttpHeaders();
-        ContentDisposition contentDisposition = ContentDisposition.builder("attachment")
-                .filename("myreport.htm", StandardCharsets.UTF_8)
-                .build();
-        headers.setContentDisposition(contentDisposition);
-        try (ByteArrayInputStream bis = new ByteArrayInputStream(htmlReport.getBytes())) {
-            return ResponseEntity
-                    .ok()
-                    .headers(headers)
-                    .contentType(MediaType.APPLICATION_XHTML_XML)
-                    .body(new InputStreamResource(bis));
-        }
+        ByteArrayInputStream bis = new ByteArrayInputStream(htmlReport.getBytes());
+        return ResponseEntity.ok()
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"myreport.htm\"")
+                .body(new InputStreamResource(bis));
     }
 
     private String generateHtmlReport() throws Exception {
-        Configuration cfg = new Configuration(Configuration.VERSION_2_3_28);
+        Configuration cfg = new Configuration(Configuration.VERSION_2_3_30);
         cfg.setClassForTemplateLoading(this.getClass(), "/");
         cfg.setDefaultEncoding("UTF-8");
         Template template = cfg.getTemplate("templates/my-report.ftl");
@@ -72,16 +62,14 @@ class HomeController {
 
     private List<Employee> getEmployeeData() {
         //Sample Data
-        return IntStream.range(0, 2)
-                .mapToObj(i -> Employee.builder().name("Name " + i).age(i + 30).dob(new Date()).build())
+        Random random = new Random();
+        return IntStream.range(0, 150)
+                .mapToObj(i -> Employee.builder()
+                        .name("Name " + i)
+                        .age(random.nextInt(65 - 20) + 20)
+                        .dob(new Date())
+                        .salary(40000 + (100000 - 40000) * random.nextDouble())
+                        .build())
                 .collect(Collectors.toList());
     }
-}
-
-@Builder
-@Data
-class Employee {
-    public String name;
-    public Integer age;
-    public Date dob;
 }
