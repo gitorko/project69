@@ -2,6 +2,8 @@
 
 HTML reports with freemarker
 
+[https://gitorko.github.io/freemarker-reports/](https://gitorko.github.io/freemarker-reports/)
+
 ### Version
 
 Check version
@@ -19,5 +21,3 @@ To run the backend in dev mode.
 ./gradlew clean build
 ./gradlew bootRun
 ```
-
-Open [http://localhost:8080/report](http://localhost:8080/report)
